@@ -26,63 +26,93 @@
   ****************************************************************/
 
 (function () {
-
-	jQuery.fn.isTable = function (el) {
+	//helper function to quickly determine if an element is a table
+	isTable = function (el) {
 		return (el.nodeName == 'TABLE') ? true : false;
 	}
 	
-	jQuery.fn.isCell = function (el) {
+	//helper function to quickly determine if an element is a tbody
+	isTbody = function (el) {
+		return (el.nodeName == 'TBODY') ? true : false;
+	}
+
+	//helper function to quickly determine if an element is a tfoot
+	isTfoot = function (el) {
+		return (el.nodeName == 'TFOOT') ? true : false;
+	}
+
+	//helper function to quickly determine if an element is a thead
+	isThead = function (el) {
+		return (el.nodeName == 'THEAD') ? true : false;
+	}
+
+	//helper function to quickly determine if an element is a table cell
+	isCell = function (el) {
 		return (el.nodeName == 'TD') ? true : false;
 	}
 	
-	jQuery.fn.isRow = function (el) {
+	//helper function to quickly determine if an element is a table row
+	isRow = function (el) {
 		return (el.nodeName == 'TR') ? true : false;
 	}
-	
+
+	getTable = function (el,jq) {
+		var tbl;
+
+		if (isTable(el) || isThead(el) || isTbody(el) || isTfoot(el)) {
+                	jq = jq.not(el);
+                        tbl = el;
+                }
+                else if (isCell(el)) {
+                        tbl = el.parentNode.parentNode;
+                }
+                else if (isRow(el)) {
+                        tbl = el.parentNode;
+                }
+
+		return { table : tbl, jq : jq }
+	}
+
+	//add the cell method to the jQuery object
+	//this method adds the cell at row,col in any tables in the current
+	//selection to the selection
+	//
+	//it will remove the table from the selection
 	jQuery.fn.cell = function (row,col) {
-		var myjq = this;
+		var jq = this;
 	
 		this.each(function(i,el) {
-			if (myjq.isTable(this)) {
-				myjq = myjq.not(this);
-				jQuery.fn.depth++;
-				tbl = this;
-			}
-			else if (myjq.isCell(this)) {
-				//alert('cell');
-				tbl = this.parentNode.parentNode;
-			}
+			var obj = getTable(this,jq);
+			jq = obj.jq;
+			tbl = obj.table;
 			
 			if (tbl && tbl.rows.item(row) && tbl.rows.item(row).cells.item(col)) {
 				var cell = tbl.rows.item(row).cells.item(col);
-				myjq = myjq.add(cell);
-				jQuery.fn.depth++;
+				jq = jq.add(cell);
 			}
 		});
 		
-		return myjq;
+		return jq;
 	};
 	
 	jQuery.fn.row = function (row) {
 		var jq = this;
 	
 		jq.each(function (i,el) {
-			if (jq.isTable(this)) {
-				jq = jq.not(this);
-				jQuery.fn.depth++;
-				tbl = this;
-			}
-			else if (jq.isCell(this)) {
-				//alert('cell');
-				tbl = this.parentNode.parentNode;
-			}
+			var obj = getTable(this,jq);
+			jq = obj.jq;
+			tbl = obj.table;
 	
-			var tmp = [];
+			var tmp = Array();
 			var rw = tbl.rows.item(row);
-	
-			for (var x = 0; x < rw.cells.length; x++) {
-				var cell = rw.cells.item(x);
-				jq = jq.add(cell);
+			
+			if (rw) {
+				for (var x = 0; x < rw.cells.length; x++) {
+					var cell = rw.cells.item(x);
+					tmp.push(cell);
+				}
+			
+				jq = jq.add(tmp);
 			}
 		});
 	
@@ -93,15 +123,10 @@
 		var jq = this;
 	
 		jq.each(function (i,el) {
-			if (jq.isTable(this)) {
-				jq = jq.not(this);
-				jQuery.fn.depth++;
-				tbl = this;
-			}
-			else if (jq.isCell(this)) {
-				//alert('cell');
-				tbl = this.parentNode.parentNode;
-			}
+			var obj = getTable(this,jq);
+			jq = obj.jq;
+			tbl = obj.table;
+			
 			var tmp = Array();
 		
 			for (var y = 0; y < tbl.rows.length; y++) {
@@ -119,15 +144,16 @@
 		var jq = this;
 		
 		while (jq.length > 0 ) {
-			jq.each(function (i, el) {
+		//	jq.each(function (i, el) {
 				jq = jq.end();
-			});
+		//	});
 		}
 		jq = jq.end();
-	
+		
 		return jq;
 	}
 	
+	//resize the table, only grows the table at the moment
 	jQuery.fn.resize = function (cols,rows) {
 		var jq = this;
 		
@@ -143,7 +169,6 @@
 		
 				for (var x = rw.cells.length; x < cols + 1; x ++) {
 					var td = rw.insertCell(-1);
-					td.innerHTML = '.';
 				}
 			}
 		});

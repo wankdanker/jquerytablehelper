@@ -1,0 +1,31 @@
+<html>
+<head>
+
+</head>
+<body>
+<script src="jquery.js"></script>
+<script src="jquery.tableHelper.js"></script>
+<script>
+css1 = { backgroundColor : '#ffdddd'}
+css2 = { backgroundColor : '#ddddff'}
+
+$("<table></table>")
+	.appendTo(document.body)
+	.resize(10,10)
+	.col(0).html('.').tableEnd()
+	.col(1).html('1').tableEnd()
+	.col(2).html('2').tableEnd()
+	.col(3).html('3').tableEnd()
+	.col(4).html('4').tableEnd()
+	.col(5).html('5').tableEnd()
+	.col(6).html('6').tableEnd()
+	.col(7).html('7').tableEnd()
+	.col(8).html('8').tableEnd()
+	.col(9).html('.').tableEnd()
+	.row(0).html('.').tableEnd()
+	.row(10).html('.').tableEnd()
+	.cell(1,1).css(css1).tableEnd()
+	.cell(5,5).css(css2).html('Hi Kids')
+</script>
+</body>
+</html>

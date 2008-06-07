@@ -118,6 +118,44 @@
 	
 		return jq;
 	}
+
+	jQuery.fn.alternate = function(start, interval) {
+		var jq = this;
+
+		jq.each(function (i,el) {
+			var obj = getTable(this,jq);
+			jq = obj.jq;
+			tbl = obj.table;
+
+			var tmp = Array();
+			
+			for (var x = start; x < tbl.rows.length; x += interval) {
+				var rw = tbl.rows.item(x);
+				
+				for (var y = 0; y < rw.cells.length; y++) {
+					var cell = rw.cells.item(y);
+					tmp.push(cell);
+				}
+			}
+			
+			jq = jq.add(tmp);
+		});
+
+		return jq;
+	}
+
+	jQuery.fn.even = function () {
+		return this.alternate(0,2);
+	}
+
+	jQuery.fn.odd = function () {
+		return this.alternate(1,2);
+	}
+	
+	jQuery.fn.all = function () {
+		return this.alternate(0,1);
+	}
+
 	
 	jQuery.fn.col = function (col) {
 		var jq = this;

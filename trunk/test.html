@@ -8,6 +8,7 @@
 <script>
 css1 = { backgroundColor : '#ffdddd'}
 css2 = { backgroundColor : '#ddddff'}
+css3 = { border : 'red 1px solid', width : '20px', height : '20px', textAlign : 'center' }
 
 $("<table></table>")
 	.appendTo(document.body)
@@ -21,11 +22,15 @@ $("<table></table>")
 	.col(6).html('6').tableEnd()
 	.col(7).html('7').tableEnd()
 	.col(8).html('8').tableEnd()
-	.col(9).html('.').tableEnd()
+	.col(9).html('9').tableEnd()
+	.col(10).html('.').tableEnd()
 	.row(0).html('.').tableEnd()
 	.row(10).html('.').tableEnd()
 	.cell(1,1).css(css1).tableEnd()
-	.cell(5,5).css(css2).html('Hi Kids')
+	.cell(5,5).css(css2).html('*').tableEnd()
+	.odd().css(css2).tableEnd()
+	.even().css(css1).tableEnd()
+	.all().css(css3).tableEnd()
 </script>
 </body>
 </html>

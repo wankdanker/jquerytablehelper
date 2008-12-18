@@ -78,7 +78,7 @@
 	//selection to the selection
 	//
 	//it will remove the table from the selection
-	jQuery.fn.cell = function (row,col) {
+	jQuery.fn.cell = function (col,row) {
 		var jq = this;
 	
 		this.each(function(i,el) {
@@ -194,7 +194,9 @@
 	//resize the table, only grows the table at the moment
 	jQuery.fn.resize = function (cols,rows) {
 		var jq = this;
-		
+		//fix off by one issue
+		cols--;
+		rows--;
 		result = this.each(function(i,el) {
 	
 			for (var y = this.rows.length; y < rows + 1; y++) {

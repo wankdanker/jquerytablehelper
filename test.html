@@ -31,6 +31,54 @@ $("<table></table>")
 	.odd().css(css2).tableEnd()
 	.even().css(css1).tableEnd()
 	.all().css(css3).tableEnd()
+
+
+$tbl = $('<table></table>')
+.resize(10,10)
+.appendTo(document.body)
+.all().html('[-]').tableEnd();
+
+$tbl.range('b2:c2').merge(true).css({border : 'black 4px solid'});
+
+var interval = null;
+
+$('<button>Animate</button>')
+	.appendTo(document.body)
+	.click(function () {
+		interval = setInterval(function () {
+			applyColors();
+		}, 100);
+	});
+
+$('<button>Stop Animation</button>')
+	.appendTo(document.body)
+	.click(function () {
+		clearInterval(interval);
+	});
+
+
+colors = ['orange','red','blue','green','yellow'];
+var index = 0;
+
+applyColors();
+
+function applyColors() {
+	$tbl.range('a1:j10').css({backgroundColor : colors[nextIndex()]}).tableEnd();
+	$tbl.range('b2:i9').css({backgroundColor : colors[nextIndex()]}).tableEnd();
+	$tbl.range('c3:h8').css({backgroundColor : colors[nextIndex()]}).tableEnd();
+	$tbl.range('d4:g7').css({backgroundColor : colors[nextIndex()]}).tableEnd();
+	$tbl.range('e5:f6').css({backgroundColor : colors[nextIndex()]}).html('[*]').tableEnd();
+}
+
+function nextIndex() {
+	if (index == colors.length) {
+		index = 0;
+	}
+	else index++;
+
+	return index;
+}
+
 </script>
 </body>
 </html>

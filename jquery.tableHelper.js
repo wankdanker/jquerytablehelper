@@ -26,6 +26,19 @@
   ****************************************************************/
 
 (function () {
+	var alphaColLookup = {}
+	var colIndex = 0;
+
+	for (var x = 97; x <= 122; x++) {
+	    alphaColLookup[String.fromCharCode(x)] = colIndex++;	  
+	}
+
+	for (var x = 97; x <= 122; x++) {
+	    for (var y = 97; y <= 122; y++) {
+		alphaColLookup[String.fromCharCode(x) + String.fromCharCode(y)] = colIndex++;	  
+	    }
+	}
+
 	//helper function to quickly determine if an element is a table
 	isTable = function (el) {
 		return (el.nodeName == 'TABLE') ? true : false;
@@ -213,6 +226,91 @@
 			}
 		});
 		
+		return jq;
+	}
+
+	jQuery.fn.range = function (stRange) { //yes i called this stRange for fun reasons only.
+		var jq = this;
+
+		if (stRange.indexOf(':') >= 0) {
+			var tokens = stRange.split(':');
+			var range = []
+
+			for (var x = 0; x < tokens.length; x++) {
+				var token = tokens[x];
+				var col = alphaColLookup[/[a-zA-Z]{1,2}/.exec(token)];
+				var row = (/[0-9]{1,}/.exec(token)) - 1;
+			
+				range.push({row : row, col : col});
+			}
+				
+			if (range.length == 2) {
+				//we have a start coord and a stop coord
+				jq.each(function(i,el) {
+					var cells = [];
+					var obj = getTable(this,jq);
+
+					jq = obj.jq;
+					tbl = obj.table;
+					
+					for (var x = range[0].col ; x <= range[1].col ; x ++) {
+						for (var y = range[0].row ; y <= range[1].row ; y++) {
+							if (tbl && tbl.rows.item(y) && tbl.rows.item(y).cells.item(x)) {
+								var cell = tbl.rows.item(y).cells.item(x);
+								cells.push(cell);
+							}
+						}
+					}
+					//add the cells we collected to the jquery object
+
+					jq = jq.add(cells);
+				});
+			}
+		}
+		
+		return jq;
+	}
+
+	jQuery.fn.merge = function (copyContents) {
+		var jq = this;
+		var contents = '';
+
+		var cells = [];
+		
+		jq.each(function (i, el) {
+			if (isCell(this)) cells.push(this);
+		})
+		
+		//find the top left most cell
+		if (cells.length > 0) {
+			
+			var tl = {row : cells[0].parentNode.rowIndex, col : cells[0].cellIndex, cell : cells[0]};
+			var br = {row : cells[0].parentNode.rowIndex, col : cells[0].cellIndex, cell : cells[0]};
+
+			for (var x = 0; x < cells.length; x ++){
+				var cell = cells[x];
+
+				var row = cell.parentNode.rowIndex;
+				var col = cell.cellIndex
+				
+				if (row < tl.row || col < tl.col ) tl = {row : row, col : col, cell : cell};
+				if (row > br.row || col > br.col ) br = {row : row, col : col, cell : cell};
+			}
+			
+			for (var x = 0; x < cells.length; x ++){
+				var cell = cells[x];
+				
+				if (cell != tl.cell) {
+					if (copyContents) contents += cell.innerHTML;
+					cell.parentNode.removeChild(cell);
+				}
+			}
+
+			tl.cell.colSpan = br.col - tl.col + 1;
+			tl.cell.rowSpan = br.row - tl.row + 1;
+			if (copyContents) tl.cell.innerHTML += contents;
+		}
+
 		return jq;
 	}
 })();

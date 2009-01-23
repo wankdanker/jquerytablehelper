@@ -13,7 +13,7 @@ css3 = { border : 'red 1px solid', width : '20px', height : '20px', textAlign : 
 $("<table></table>")
 	.appendTo(document.body)
 	.resize(10,10)
-	.col(0).html('.').tableEnd()
+	.col(0).html('0').tableEnd()
 	.col(1).html('1').tableEnd()
 	.col(2).html('2').tableEnd()
 	.col(3).html('3').tableEnd()
@@ -33,21 +33,34 @@ $("<table></table>")
 	.all().css(css3).tableEnd()
 
 
-$tbl = $('<table></table>')
-.resize(10,10)
-.appendTo(document.body)
-.all().html('[-]').tableEnd();
+$tbl = $('<table border=1"></table>').resize(10,10).appendTo(document.body).all().html('[-]').tableEnd();
 
-$tbl.range('b2:c2').merge(true).css({border : 'black 4px solid'});
+$tbl.range('b3:f4').merge().css({border : 'black 4px solid'}).tableEnd();
+$tbl.range('g5:g10').merge().css({border : 'black 4px solid', textAlign : 'center'}).html('*').tableEnd();
+$tbl.range('a6:b7').merge().css({border : 'black 4px solid', textAlign : 'center'}).tableEnd();
+
+
 
 var interval = null;
+
+$('<button>Unmerge</button>')
+	.appendTo(document.body)
+	.click(function () {
+		$tbl.cell(0,5).css('backgroundColor','red').unMerge().html('.').tableEnd();
+	});
+
+$('<button>Step</button>')
+	.appendTo(document.body)
+	.click(function () {
+		applyColors();
+	});
 
 $('<button>Animate</button>')
 	.appendTo(document.body)
 	.click(function () {
 		interval = setInterval(function () {
 			applyColors();
-		}, 100);
+		}, 200);
 	});
 
 $('<button>Stop Animation</button>')
@@ -57,12 +70,14 @@ $('<button>Stop Animation</button>')
 	});
 
 
-colors = ['orange','red','blue','green','yellow'];
+colors = ['#aaaaff','#8888dd','#6666bb','#444499','#222277'];
+
+colors = ['red','orange','yellow','green','blue'];
 var index = 0;
 
 applyColors();
 
-function applyColors() {
+function applyColors(step) {
 	$tbl.range('a1:j10').css({backgroundColor : colors[nextIndex()]}).tableEnd();
 	$tbl.range('b2:i9').css({backgroundColor : colors[nextIndex()]}).tableEnd();
 	$tbl.range('c3:h8').css({backgroundColor : colors[nextIndex()]}).tableEnd();
@@ -78,6 +93,19 @@ function nextIndex() {
 
 	return index;
 }
+
+
+$tbl2 = $('<table />').attr('border',1).resize(6,4).appendTo(document.body).css({border : 'black 4px solid'}).all().html('[-]').tableEnd()
+	.range('a1:a1').html('Is Active').tableEnd()
+	.range('b1:b1').html('').append('<input type="checkbox" />').tableEnd()
+	.range('a2:a2').html('Is New').tableEnd()
+	.range('b2:b2').html('').append('<input type="checkbox" />').tableEnd()
+	.range('a3:a3').html('Is Something').tableEnd()
+	.range('b3:b3').html('').append('<input type="checkbox" />').tableEnd()
+	.range('a4:a4').html('notes').tableEnd()
+	.range('b4:f4').merge().html('').append($('<textarea />')).tableEnd()
+	.range('c1:f3').merge().html('here is a merged help cell').css({border : 'blue 4px solid'}).tableEnd()
+
 
 </script>
 </body>

@@ -86,6 +86,44 @@
 		return { table : tbl, jq : jq }
 	}
 
+	getVirtTable = function (tbl) {
+		//tables which contain cells that have a rowSpan or cellSpan make the indices not friendly for
+		//any type of coordinate system. What this section does is loop through the actual table, building
+		//a map of that table where a 'merged cell' has a reference at every coordinate which it takes up.
+		//i tried other methods, but this is the one that ended up working. not sure if this is the most efficient.
+		//
+		//this method helps with including merged cells in an overlapping range
+
+		var virtTable  = {};
+
+		for (var y = 0; y < tbl.rows.length; y++) {
+			var row = tbl.rows[y];
+			for (var x = 0; x < row.cells.length; x++) {
+				var cell = row.cells[x];
+				
+				//this loop is for setting the references of a cell that might have a rowSpan or cellSpan
+				for (var a = 0; a < cell.rowSpan; a++) {
+					for (var b = 0; b < cell.colSpan; b++) {
+						if (!virtTable[y + a]) virtTable[y + a] = {};
+						
+						if (!virtTable[y + a][x + b]) {
+							virtTable[y + a][x + b] = cell;
+						}
+						else {
+							var c = 0;
+							while (virtTable[y + a][x + b + c]) {
+								c++;
+							}
+							virtTable[y + a][x + b + c] = cell;
+						}
+					}
+				}
+			}
+		}
+
+		return virtTable;
+	}
+
 	//add the cell method to the jQuery object
 	//this method adds the cell at row,col in any tables in the current
 	//selection to the selection
@@ -99,8 +137,10 @@
 			jq = obj.jq;
 			tbl = obj.table;
 			
-			if (tbl && tbl.rows.item(row) && tbl.rows.item(row).cells.item(col)) {
-				var cell = tbl.rows.item(row).cells.item(col);
+			var virtTable = getVirtTable(tbl);
+			
+			if (virtTable && virtTable[row] && virtTable[row][col]) {
+				var cell = virtTable[row][col];
 				jq = jq.add(cell);
 			}
 		});
@@ -229,18 +269,18 @@
 		return jq;
 	}
 
-	jQuery.fn.range = function (stRange) { //yes i called this stRange for fun reasons only.
+	jQuery.fn.range = function (stRange) { //yes i called this stRange for fun reasons.
 		var jq = this;
 
 		if (stRange.indexOf(':') >= 0) {
 			var tokens = stRange.split(':');
 			var range = []
-
+			
 			for (var x = 0; x < tokens.length; x++) {
 				var token = tokens[x];
 				var col = alphaColLookup[/[a-zA-Z]{1,2}/.exec(token)];
 				var row = (/[0-9]{1,}/.exec(token)) - 1;
-			
+				
 				range.push({row : row, col : col});
 			}
 				
@@ -249,20 +289,22 @@
 				jq.each(function(i,el) {
 					var cells = [];
 					var obj = getTable(this,jq);
-
+					
 					jq = obj.jq;
 					tbl = obj.table;
 					
-					for (var x = range[0].col ; x <= range[1].col ; x ++) {
-						for (var y = range[0].row ; y <= range[1].row ; y++) {
-							if (tbl && tbl.rows.item(y) && tbl.rows.item(y).cells.item(x)) {
-								var cell = tbl.rows.item(y).cells.item(x);
-								cells.push(cell);
+					var virtTable = getVirtTable(tbl);
+
+					//now grab the cells in the range from the virtual table.
+					for (var y = range[0].row ; y <= range[1].row ; y ++) {
+						for (var x = range[0].col; x <= range[1].col; x++) {
+							if (virtTable[y][x]) {
+								cells.push(virtTable[y][x]);
 							}
 						}
 					}
-					//add the cells we collected to the jquery object
 
+					//add the cells we collected to the jquery object
 					jq = jq.add(cells);
 				});
 			}
@@ -313,4 +355,50 @@
 
 		return jq;
 	}
+
+	jQuery.fn.unMerge = function () {
+		var jq = this;
+		var contents = '';
+
+		var cells = [];
+		
+		jq.each(function (i, el) {
+			var done = false;
+
+			if (isCell(this)) {
+				var tbl = getTable(this).table;
+				var virtTable = getVirtTable(tbl);
+				
+				//loop through the virtual table to find the top leftest reference to this merged cell.
+				for ( var y in virtTable ) {
+					var row = virtTable[y];
+					
+					for (var x in row) {
+						var cell = row[x];
+						
+						if (cell == this) {
+							rowSpan = this.rowSpan;
+							colSpan = this.colSpan;
+							//
+							//loop through the size of this cell and insert new cells
+							for ( var a = 0; a < rowSpan; a++ ) {
+								for ( var b = 0 ; b < colSpan; b++ ) {
+									//alert(parseInt(x) + colSpan);
+									//alert((parseInt(y) + a) + ' ' + y + ' ' + a)// + virtTable[String(y + a)][x])
+									var cell = jQuery('<td />').insertBefore(virtTable[(parseInt(y) + a)][parseInt(x) + colSpan]).get(0)
+									cells.push(cell);
+								}
+							}
+							$(this).remove();
+							done = true;
+							break;
+						}
+					}
+					if (done) break;
+				}
+			}
+		})
+		return jq.add(cells);
+	}
+
 })();

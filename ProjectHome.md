@@ -1,0 +1,1 @@
+jQuery.tableHelper is a plugin for jQuery which allows you to add cells to your selection by coordinates, row, or column.
